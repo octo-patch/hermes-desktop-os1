@@ -84,6 +84,39 @@ struct ProviderCatalogTests {
     }
 
     @Test
+    func minimaxCoversGlobalAndChinaEndpoints() {
+        // MiniMax ships two regional entries: the global OpenAI-compatible
+        // endpoint (api.minimax.io) and the China endpoint (api.minimaxi.com).
+        // Both must be custom OpenAI-compatible providers with distinct env
+        // vars so the host's .env never collides.
+        let global = ProviderCatalog.entry(for: "minimax")
+        let china = ProviderCatalog.entry(for: "minimax-cn")
+
+        #expect(global != nil, "Global MiniMax entry missing")
+        #expect(china != nil, "China MiniMax entry missing")
+
+        #expect(global?.baseURL.absoluteString == "https://api.minimax.io/v1",
+                "Global MiniMax base URL mismatch")
+        #expect(china?.baseURL.absoluteString == "https://api.minimaxi.com/v1",
+                "China MiniMax base URL mismatch")
+
+        #expect(global?.envVar == "MINIMAX_API_KEY")
+        #expect(china?.envVar == "MINIMAX_CN_API_KEY")
+
+        #expect(global?.kind == .customProvider(configName: "minimax"))
+        #expect(china?.kind == .customProvider(configName: "minimax-cn"))
+
+        if let global {
+            #expect(global.tagline.contains("MiniMax-M3"))
+            #expect(global.tagline.contains("MiniMax-M2.7"))
+        }
+        if let china {
+            #expect(china.tagline.contains("MiniMax-M3"))
+            #expect(china.tagline.contains("MiniMax-M2.7"))
+        }
+    }
+
+    @Test
     func providerModelSummaryDecodesCommonShapes() throws {
         let payloads: [(String, String?)] = [
             (#"{"id":"gpt-5.2","name":"GPT-5.2","context_length":200000}"#, "GPT-5.2"),

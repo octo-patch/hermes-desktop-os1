@@ -133,6 +133,43 @@ enum ProviderCatalog {
             // to baseURL.path).
             validation: .modelsEndpoint(path: "/models"),
             supportsOAuth: false
+        ),
+        ProviderCatalogEntry(
+            slug: "minimax",
+            displayName: "MiniMax",
+            tagline: "MiniMax-M3 and MiniMax-M2.7 — up to 1M context, OpenAI-compatible.",
+            symbolName: "bolt",
+            keyPrefixHint: "eyJ…",
+            dashboardURL: URL(string: "https://platform.minimax.io/user-center/basic-information/interface-key")!,
+            docsURL: URL(string: "https://platform.minimax.io/docs/api-reference/text-openai-api")!,
+            envVar: "MINIMAX_API_KEY",
+            baseURL: URL(string: "https://api.minimax.io/v1")!,
+            // MiniMax also exposes an Anthropic-compatible route at
+            // https://api.minimax.io/anthropic, but Hermes' custom_providers
+            // are OpenAI-compatible only, so the catalog installs the
+            // OpenAI-compatible endpoint and documents the other in docs.
+            kind: .customProvider(configName: "minimax"),
+            validation: .modelsEndpoint(path: "/models"),
+            supportsOAuth: false
+        ),
+        ProviderCatalogEntry(
+            slug: "minimax-cn",
+            displayName: "MiniMax · China",
+            tagline: "MiniMax-M3 and MiniMax-M2.7 via the China endpoint (api.minimaxi.com).",
+            symbolName: "bolt",
+            keyPrefixHint: "eyJ…",
+            dashboardURL: URL(string: "https://platform.minimaxi.com/user-center/basic-information/interface-key")!,
+            docsURL: URL(string: "https://platform.minimaxi.com/docs/api-reference/text-openai-api")!,
+            envVar: "MINIMAX_CN_API_KEY",
+            // Regional twin of the global entry: the China platform uses
+            // api.minimaxi.com (note the extra "i") and a separate key.
+            // Same OpenAI-compatible shape; the Anthropic-compatible route
+            // at https://api.minimaxi.com/anthropic is documented, not
+            // installed, for the same reason as the global entry.
+            baseURL: URL(string: "https://api.minimaxi.com/v1")!,
+            kind: .customProvider(configName: "minimax-cn"),
+            validation: .modelsEndpoint(path: "/models"),
+            supportsOAuth: false
         )
     ]
 
