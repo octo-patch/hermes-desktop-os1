@@ -8,7 +8,7 @@ struct ProviderValidationClientTests {
         let entry = try #require(ProviderCatalog.entry(for: slug))
         let result = try await validate(entry)
         #expect(!result.wasSkipped)
-        #expect(result.models.map(\.id) == ["MiniMax-M3.1-Flash", "MiniMax-M3"])
+        #expect(result.models.map(\.id) == ["MiniMax-M3.1-Flash", "MiniMax-M3", "speech-02"])
         #expect(result.models.first?.contextLength == 1_000_000)
     }
 
@@ -64,7 +64,7 @@ private final class ModelCatalogURLProtocol: URLProtocol, @unchecked Sendable {
         switch url.host {
         case "api.minimax.io", "api.minimaxi.com":
             #expect(url.path == "/v1/models")
-            body = #"{"data":[{"id":"MiniMax-M2.7"},{"id":"MiniMax-M3"},{"id":"MiniMax-M3.1-Flash","context_length":1000000}]}"#
+            body = #"{"data":[{"id":"MiniMax-M2.7"},{"id":"MiniMax-M3"},{"id":"MiniMax-M3.1-Flash","context_length":1000000},{"id":"speech-02"}]}"#
         case "openrouter.ai":
             #expect(url.path == "/api/v1/models")
             body = #"{"data":[{"id":"unrelated/model"},{"id":"minimax/minimax-m2.7"},{"id":"minimax/minimax-m3"},{"id":"minimax/minimax-m3.1-flash:free","context_length":262144},{"id":"minimax/speech-02"},{"id":"minimax/minimax-m3.1-flash"}]}"#

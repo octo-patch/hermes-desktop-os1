@@ -40,15 +40,13 @@ struct ProviderCatalogEntry: Identifiable, Equatable, Sendable {
             return models
         }
         let preferred = preferredIDs.compactMap { id in models.first { $0.id == id } }
-        if slug == "openrouter" {
-            // Only the MiniMax text family is curated here, not media models
-            // or any other provider's catalog.
-            let others = models.filter {
-                $0.id.range(of: "^minimax/minimax-m[0-9]", options: [.regularExpression, .caseInsensitive]) == nil
-            }
-            return preferred + others
+        // Only the MiniMax text family is curated here, not media models
+        // or any other provider's catalog.
+        let textPattern = slug == "openrouter" ? "^minimax/minimax-m[0-9]" : "^minimax-m[0-9]"
+        let others = models.filter {
+            $0.id.range(of: textPattern, options: [.regularExpression, .caseInsensitive]) == nil
         }
-        return preferred
+        return preferred + others
     }
 
     enum Kind: Equatable, Sendable {
