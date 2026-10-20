@@ -27,6 +27,30 @@ struct ProviderCatalogEntry: Identifiable, Equatable, Sendable {
 
     var id: String { slug }
 
+    /// Curate ordinary choices only; persisted and manually entered model IDs
+    /// remain valid inputs to the host installer. Keep server-owned metadata.
+    func modelChoices(from models: [ProviderModelSummary]) -> [ProviderModelSummary] {
+        let preferredIDs: [String]
+        switch slug {
+        case "minimax", "minimax-cn":
+            preferredIDs = ["MiniMax-M3.1-Flash", "MiniMax-M3"]
+        case "openrouter":
+            preferredIDs = ["minimax/minimax-m3.1-flash:free", "minimax/minimax-m3"]
+        default:
+            return models
+        }
+        let preferred = preferredIDs.compactMap { id in models.first { $0.id == id } }
+        if slug == "openrouter" {
+            // Only the MiniMax text family is curated here, not media models
+            // or any other provider's catalog.
+            let others = models.filter {
+                $0.id.range(of: "^minimax/minimax-m[0-9]", options: [.regularExpression, .caseInsensitive]) == nil
+            }
+            return preferred + others
+        }
+        return preferred
+    }
+
     enum Kind: Equatable, Sendable {
         case builtin(typeKey: String)
         case customProvider(configName: String)
@@ -137,7 +161,7 @@ enum ProviderCatalog {
         ProviderCatalogEntry(
             slug: "minimax",
             displayName: "MiniMax",
-            tagline: "MiniMax-M3 and MiniMax-M2.7 — up to 1M context, OpenAI-compatible.",
+            tagline: "MiniMax-M3.1-Flash and MiniMax-M3 — up to 1M context, OpenAI-compatible.",
             symbolName: "bolt",
             keyPrefixHint: "eyJ…",
             dashboardURL: URL(string: "https://platform.minimax.io/user-center/basic-information/interface-key")!,
@@ -155,7 +179,7 @@ enum ProviderCatalog {
         ProviderCatalogEntry(
             slug: "minimax-cn",
             displayName: "MiniMax · China",
-            tagline: "MiniMax-M3 and MiniMax-M2.7 via the China endpoint (api.minimaxi.com).",
+            tagline: "MiniMax-M3.1-Flash and MiniMax-M3 via the China endpoint (api.minimaxi.com).",
             symbolName: "bolt",
             keyPrefixHint: "eyJ…",
             dashboardURL: URL(string: "https://platform.minimaxi.com/user-center/basic-information/interface-key")!,

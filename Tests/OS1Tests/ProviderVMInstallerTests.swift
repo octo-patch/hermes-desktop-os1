@@ -129,6 +129,36 @@ struct ProviderVMInstallerTests {
         #expect(outcome.authJSON["active_provider"] as? String == "openai")
     }
 
+    @Test(arguments: ["minimax", "minimax-cn"])
+    func minimaxActivationPreservesExplicitModelIDs(slug: String) throws {
+        let provider = try #require(ProviderCatalog.entry(for: slug))
+        for modelID in ["MiniMax-M3.1-Flash", "MiniMax-M3", "MiniMax-M2.7", "custom-model"] {
+            let outcome = try runInstallerScript(
+                provider: provider,
+                action: .install(apiKey: "fixture-key", activateModel: modelID)
+            )
+            let model = try #require(outcome.config["model"] as? [String: Any])
+            #expect(model["default"] as? String == modelID)
+            #expect(model["provider"] as? String == slug)
+            #expect(model["base_url"] as? String == provider.baseURL.absoluteString)
+            #expect(outcome.authJSON["active_provider"] as? String == slug)
+        }
+    }
+
+    @Test(arguments: ["minimax", "minimax-cn"])
+    func minimaxKeyInstallationKeepsSavedModel(slug: String) throws {
+        let provider = try #require(ProviderCatalog.entry(for: slug))
+        let outcome = try runInstallerScript(
+            provider: provider,
+            action: .install(apiKey: "fixture-key", activateModel: nil),
+            initialModel: "MiniMax-M2.7"
+        )
+        let model = try #require(outcome.config["model"] as? [String: Any])
+        #expect(model["default"] as? String == "MiniMax-M2.7")
+        #expect(model["provider"] as? String == slug)
+        #expect(outcome.authJSON["active_provider"] as? String == slug)
+    }
+
     private struct InstallerOutcome {
         let config: [String: Any]
         let authJSON: [String: Any]
@@ -139,13 +169,24 @@ struct ProviderVMInstallerTests {
     /// land in `<tmp>/.hermes/`. Returns the parsed config / auth files.
     private func runInstallerScript(
         provider: ProviderCatalogEntry,
-        action: ProviderVMInstallAction
+        action: ProviderVMInstallAction,
+        initialModel: String? = nil
     ) throws -> InstallerOutcome {
         let script = ProviderVMInstaller.makeScript(provider: provider, action: action)
         let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent("os1-installer-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: tmp, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tmp) }
+
+        if let initialModel {
+            let hermesDir = tmp.appendingPathComponent(".hermes")
+            try FileManager.default.createDirectory(at: hermesDir, withIntermediateDirectories: true)
+            let config = ["model": ["default": initialModel, "provider": provider.slug]]
+            try JSONSerialization.data(withJSONObject: config)
+                .write(to: hermesDir.appendingPathComponent("config.yaml"))
+            try JSONSerialization.data(withJSONObject: ["active_provider": provider.slug])
+                .write(to: hermesDir.appendingPathComponent("auth.json"))
+        }
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")

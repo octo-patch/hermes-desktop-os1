@@ -89,7 +89,7 @@ struct ProviderValidationClient: Sendable {
             case 200..<300:
                 do {
                     let payload = try JSONDecoder().decode(ProviderModelListResponse.self, from: data)
-                    return ProviderValidationResult(models: payload.data, wasSkipped: false)
+                    return ProviderValidationResult(models: entry.modelChoices(from: payload.data), wasSkipped: false)
                 } catch {
                     // Some providers nest models under different keys.
                     // Don't fail validation just because we can't parse —

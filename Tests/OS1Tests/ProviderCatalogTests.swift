@@ -108,11 +108,11 @@ struct ProviderCatalogTests {
 
         if let global {
             #expect(global.tagline.contains("MiniMax-M3"))
-            #expect(global.tagline.contains("MiniMax-M2.7"))
+            #expect(global.tagline.contains("MiniMax-M3.1-Flash"))
         }
         if let china {
             #expect(china.tagline.contains("MiniMax-M3"))
-            #expect(china.tagline.contains("MiniMax-M2.7"))
+            #expect(china.tagline.contains("MiniMax-M3.1-Flash"))
         }
     }
 
